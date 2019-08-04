@@ -5,11 +5,13 @@ import cn.nukkit.block.Block;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.event.inventory.InventoryMoveItemEvent;
 import cn.nukkit.event.inventory.InventoryOpenEvent;
 import cn.nukkit.event.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerItemHeldEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
+import cn.nukkit.inventory.HopperInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.InventoryType;
 import cn.nukkit.item.Item;
@@ -96,6 +98,17 @@ public class Main extends PluginBase implements Listener {
     public void onInventoryClose(InventoryCloseEvent e) {
         if (e.getInventory().getType() == InventoryType.ENCHANT_TABLE) {
             etOpen.remove(e.getPlayer().getName());
+        }
+    }
+
+    @EventHandler
+    public void onHopper(InventoryMoveItemEvent e) {
+        if (e.getInventory() instanceof HopperInventory) {
+            if (e.getItem().getId() == Item.UNDYED_SHULKER_BOX || e.getItem().getId() == Item.SHULKER_BOX) {
+                if (e.getAction() == InventoryMoveItemEvent.Action.PICKUP || e.getAction() == InventoryMoveItemEvent.Action.SLOT_CHANGE) {
+                    e.setCancelled(true);
+                }
+            }
         }
     }
 }
