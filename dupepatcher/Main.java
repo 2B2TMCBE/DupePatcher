@@ -63,19 +63,23 @@ public class Main extends PluginBase implements Listener {
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent e) {
-        for (Item i : e.getInventory().getContents().values()) {
+        e.getInventory().getContents().forEach((v, i) -> {
             if (i.hasCustomName()) {
                 if (i.getCustomName().length() > maxNameLength) {
                     i.clearCustomName();
+                    e.getInventory().setItem(v, i);
                 }
             }
-        }
+            if (i.getId() == Item.UNDYED_SHULKER_BOX || i.getId() == Item.SHULKER_BOX) {
+                if (checkNestedShulker(i)) {
+                    e.getInventory().setItem(v, removeNestedShulker(i));
+                }
+            }
+        });
 
         if (e.getInventory().getType() == InventoryType.ENCHANT_TABLE) {
             etOpen.add(e.getPlayer().getName());
         }
-
-        //TODO: Remove nested shulker boxes
     }
 
     @EventHandler
@@ -110,5 +114,15 @@ public class Main extends PluginBase implements Listener {
                 }
             }
         }
+    }
+
+    private boolean checkNestedShulker(Item i) {
+        //TODO
+        return false;
+    }
+
+    private Item removeNestedShulker(Item i) {
+        //TODO
+        return i;
     }
 }
