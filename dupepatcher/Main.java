@@ -2,6 +2,7 @@ package dupepatcher;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
+import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityPrimedTNT;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
@@ -25,16 +26,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main extends PluginBase implements Listener {
 
-    public void onEnable() {
-        getServer().getPluginManager().registerEvents(this, this);
-        getServer().getScheduler().scheduleRepeatingTask(this, this::cleanExplosionList, 100);
-    }
-
     private static final int maxNameLength = 30;
 
     private List<String> etOpen = new ArrayList<>();
 
     private AtomicInteger exCount = new AtomicInteger();
+    private AtomicInteger caCount = new AtomicInteger();
+    private AtomicInteger suCount = new AtomicInteger();
+
+    public void onEnable() {
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getScheduler().scheduleRepeatingTask(this, this::clearCounts, 100);
+    }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
@@ -126,6 +129,18 @@ public class Main extends PluginBase implements Listener {
                 e.getEntity().close();
             }
             exCount.incrementAndGet();
+        } else if (e.getEntity() instanceof EntityItem) {
+            if (Item.CACTUS == ((EntityItem) e.getEntity()).getItem().getId()) {
+                if (caCount.get() > 50) {
+                    e.getEntity().close();
+                }
+                caCount.incrementAndGet();
+            } else if (Item.SUGAR_CANE == ((EntityItem) e.getEntity()).getItem().getId()) {
+                if (suCount.get() > 50) {
+                    e.getEntity().close();
+                }
+                suCount.incrementAndGet();
+            }
         }
     }
 
@@ -139,7 +154,9 @@ public class Main extends PluginBase implements Listener {
         return i;
     }
 
-    private void cleanExplosionList() {
+    private void clearCounts() {
         exCount.set(0);
+        caCount.set(0);
+        suCount.set(0);
     }
 }
