@@ -2,8 +2,10 @@ package dupepatcher;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
+import cn.nukkit.entity.item.EntityPrimedTNT;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.entity.EntitySpawnEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.inventory.InventoryMoveItemEvent;
 import cn.nukkit.event.inventory.InventoryOpenEvent;
@@ -12,26 +14,27 @@ import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerItemHeldEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
 import cn.nukkit.inventory.HopperInventory;
-import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.InventoryType;
 import cn.nukkit.item.Item;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.TextFormat;
-import com.google.common.collect.BiMap;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main extends PluginBase implements Listener {
 
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getScheduler().scheduleRepeatingTask(this, this::cleanExplosionList, 100);
     }
 
     private static final int maxNameLength = 30;
 
     private List<String> etOpen = new ArrayList<>();
+
+    private AtomicInteger exCount = new AtomicInteger();
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
@@ -116,6 +119,16 @@ public class Main extends PluginBase implements Listener {
         }
     }
 
+    @EventHandler
+    public void onSpawnEntity(EntitySpawnEvent e) {
+        if (e.getEntity() instanceof EntityPrimedTNT) {
+            if (exCount.get() > 30) {
+                e.getEntity().close();
+            }
+            exCount.incrementAndGet();
+        }
+    }
+
     private boolean checkNestedShulker(Item i) {
         //TODO
         return false;
@@ -124,5 +137,9 @@ public class Main extends PluginBase implements Listener {
     private Item removeNestedShulker(Item i) {
         //TODO
         return i;
+    }
+
+    private void cleanExplosionList() {
+        exCount.set(0);
     }
 }
