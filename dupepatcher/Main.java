@@ -12,11 +12,12 @@ import cn.nukkit.event.inventory.InventoryMoveItemEvent;
 import cn.nukkit.event.inventory.InventoryOpenEvent;
 import cn.nukkit.event.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
-import cn.nukkit.event.player.PlayerItemHeldEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
 import cn.nukkit.inventory.HopperInventory;
+import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.InventoryType;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.TextFormat;
 
@@ -56,7 +57,7 @@ public class Main extends PluginBase implements Listener {
         }
     }
 
-    @EventHandler
+    /*@EventHandler
     public void onItemHeld(PlayerItemHeldEvent e) {
         Item i = e.getItem();
         if (i.hasCustomName()) {
@@ -65,21 +66,27 @@ public class Main extends PluginBase implements Listener {
                 e.getPlayer().getInventory().setItemInHand(i);
             }
         }
-    }
+        if (i.hasEnchantments()) {
+            checkAndRemove32k(e.getPlayer().getInventory(), e.getSlot(), i);
+        }
+    }*/
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent e) {
-        e.getInventory().getContents().forEach((v, i) -> {
+        e.getPlayer().getInventory().getContents().forEach((v, i) -> {
             if (i.hasCustomName()) {
                 if (i.getCustomName().length() > maxNameLength) {
                     i.clearCustomName();
                     e.getInventory().setItem(v, i);
                 }
             }
-            if (i.getId() == Item.UNDYED_SHULKER_BOX || i.getId() == Item.SHULKER_BOX) {
+            /*if (i.getId() == Item.UNDYED_SHULKER_BOX || i.getId() == Item.SHULKER_BOX) {
                 if (checkNestedShulker(i)) {
                     e.getInventory().setItem(v, removeNestedShulker(i));
                 }
+            }*/
+            if (i.hasEnchantments()) {
+                checkAndRemove32k(e.getInventory(), v, i);
             }
         });
 
@@ -144,7 +151,7 @@ public class Main extends PluginBase implements Listener {
         }
     }
 
-    private boolean checkNestedShulker(Item i) {
+    /*private boolean checkNestedShulker(Item i) {
         //TODO
         return false;
     }
@@ -152,11 +159,27 @@ public class Main extends PluginBase implements Listener {
     private Item removeNestedShulker(Item i) {
         //TODO
         return i;
-    }
+    }*/
 
     private void clearCounts() {
         exCount.set(0);
         caCount.set(0);
         suCount.set(0);
+    }
+
+    private void checkAndRemove32k(Inventory inv, int s, Item i) {
+        Item it = i.clone();
+        boolean changed = false;
+        Enchantment[] enchantments = it.getEnchantments();
+        for (Enchantment e : enchantments) {
+            if (e.getLevel() > e.getMaxLevel()) {
+                e.setLevel(e.getMaxLevel());
+                changed = true;
+            }
+        }
+        if (changed) {
+            it.addEnchantment(enchantments);
+            inv.setItem(s, it, true);
+        }
     }
 }
