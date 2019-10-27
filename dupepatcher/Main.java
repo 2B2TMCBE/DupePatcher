@@ -5,7 +5,10 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityPrimedTNT;
 import cn.nukkit.event.EventHandler;
+import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.entity.EntityDamageByEntityEvent;
+import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntitySpawnEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.inventory.InventoryMoveItemEvent;
@@ -13,6 +16,7 @@ import cn.nukkit.event.inventory.InventoryOpenEvent;
 import cn.nukkit.event.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerItemHeldEvent;
+import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
 import cn.nukkit.inventory.HopperInventory;
 import cn.nukkit.inventory.Inventory;
@@ -22,15 +26,15 @@ import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.TextFormat;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main extends PluginBase implements Listener {
 
-    private static final int maxNameLength = 30;
+    private static final int MAX_NAME_LENGTH = 30;
 
-    private List<String> etOpen = new ArrayList<>();
+    private Set<Player> etOpen = new HashSet<>();
 
     private AtomicInteger exCount = new AtomicInteger();
     private AtomicInteger caCount = new AtomicInteger();
@@ -60,47 +64,33 @@ public class Main extends PluginBase implements Listener {
 
     @EventHandler
     public void onItemHeld(PlayerItemHeldEvent e) {
-        Item i = e.getItem();
-        if (i.hasCustomName()) {
-            if (i.getCustomName().length() > maxNameLength) {
-                i.clearCustomName();
-                e.getPlayer().getInventory().setItem(e.getSlot(), i);
-            }
-        }
-        if (i.hasEnchantments()) {
-            checkAndRemove32k(e.getPlayer().getInventory(), e.getSlot(), i);
-        }
-        if (i.getCount() > i.getMaxStackSize()) {
-            i.setCount(i.getMaxStackSize());
-            e.getPlayer().getInventory().setItem(e.getSlot(), i, true);
-        }
+        this.checkItem(e.getPlayer().getInventory(), e.getSlot(), e.getItem());
     }
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent e) {
-        e.getPlayer().getInventory().getContents().forEach((v, i) -> {
-            if (i.hasCustomName()) {
-                if (i.getCustomName().length() > maxNameLength) {
-                    i.clearCustomName();
-                    e.getPlayer().getInventory().setItem(v, i);
-                }
-            }
-            /*if (i.getId() == Item.UNDYED_SHULKER_BOX || i.getId() == Item.SHULKER_BOX) {
-                if (checkNestedShulker(i)) {
-                    e.getPlayer().getInventory().setItem(v, removeNestedShulker(i));
-                }
-            }*/
-            if (i.hasEnchantments()) {
-                checkAndRemove32k(e.getPlayer().getInventory(), v, i);
-            }
-            if (i.getCount() > i.getMaxStackSize()) {
-                i.setCount(i.getMaxStackSize());
-                e.getPlayer().getInventory().setItem(v, i, true);
-            }
-        });
+        e.getInventory().getContents().forEach((slot, item) -> this.checkItem(e.getInventory(), slot, item));
 
         if (e.getInventory().getType() == InventoryType.ENCHANT_TABLE) {
-            etOpen.add(e.getPlayer().getName());
+            etOpen.add(e.getPlayer());
+        }
+    }
+
+    private void checkItem(Inventory inventory, int slot, Item i) {
+        boolean changed = false;
+        if (i.hasCustomName() && i.getCustomName().length() > MAX_NAME_LENGTH) {
+            i.clearCustomName();
+            changed = true;
+        }
+        if (i.hasEnchantments() && checkAndRemove32k(i)) {
+            changed = true;
+        }
+        if (i.getCount() > i.getMaxStackSize()) {
+            i.setCount(i.getMaxStackSize());
+            changed = true;
+        }
+        if (changed) {
+            inventory.setItem(slot, i);
         }
     }
 
@@ -108,22 +98,27 @@ public class Main extends PluginBase implements Listener {
     public void onItemPickup(InventoryPickupItemEvent e) {
         if (e.getItem().getItem().getId() == Item.UNDYED_SHULKER_BOX || e.getItem().getItem().getId() == Item.SHULKER_BOX) {
             if (e.getInventory().getHolder() instanceof Player) {
-                if (etOpen.contains(((Player) e.getInventory().getHolder()).getName())) {
+                if (etOpen.contains((Player) e.getInventory().getHolder())) {
                     e.setCancelled(true);
                 }
             }
         }
     }
 
+    public void onJoin(PlayerJoinEvent event) {
+        Inventory inventory = event.getPlayer().getInventory();
+        inventory.getContents().forEach((slot, item) -> this.checkItem(inventory, slot, item));
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        etOpen.remove(e.getPlayer().getName());
+        etOpen.remove(e.getPlayer());
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent e) {
         if (e.getInventory().getType() == InventoryType.ENCHANT_TABLE) {
-            etOpen.remove(e.getPlayer().getName());
+            etOpen.remove(e.getPlayer());
         }
     }
 
@@ -176,10 +171,9 @@ public class Main extends PluginBase implements Listener {
         suCount.set(0);
     }
 
-    private void checkAndRemove32k(Inventory inv, int s, Item i) {
-        Item it = i.clone();
+    private boolean checkAndRemove32k(Item item) {
         boolean changed = false;
-        Enchantment[] enchantments = it.getEnchantments();
+        Enchantment[] enchantments = item.getEnchantments();
         for (Enchantment e : enchantments) {
             if (e.getLevel() > e.getMaxLevel()) {
                 e.setLevel(e.getMaxLevel());
@@ -187,8 +181,8 @@ public class Main extends PluginBase implements Listener {
             }
         }
         if (changed) {
-            it.addEnchantment(enchantments);
-            inv.setItem(s, it, true);
+            item.addEnchantment(enchantments);
         }
+        return changed;
     }
 }
