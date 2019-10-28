@@ -96,12 +96,24 @@ public class Main extends PluginBase implements Listener {
 
     @EventHandler
     public void onItemPickup(InventoryPickupItemEvent e) {
-        if (e.getItem().getItem().getId() == Item.UNDYED_SHULKER_BOX || e.getItem().getItem().getId() == Item.SHULKER_BOX) {
+        Item i = e.getItem().getItem();
+        if (i.getId() == Item.UNDYED_SHULKER_BOX || i.getId() == Item.SHULKER_BOX) {
             if (e.getInventory().getHolder() instanceof Player) {
                 if (etOpen.contains((Player) e.getInventory().getHolder())) {
                     e.setCancelled(true);
                 }
             }
+        }
+
+        // Fix broken items
+        if (i.hasCustomName() && i.getCustomName().length() > MAX_NAME_LENGTH) {
+            i.clearCustomName();
+        }
+        if (i.hasEnchantments()) {
+            checkAndRemove32k(i);
+        }
+        if (i.getCount() > i.getMaxStackSize()) {
+            i.setCount(i.getMaxStackSize());
         }
     }
 
