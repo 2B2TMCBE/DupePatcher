@@ -105,6 +105,7 @@ public class Main extends PluginBase implements Listener {
         }
     }
 
+    @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Inventory inventory = event.getPlayer().getInventory();
         inventory.getContents().forEach((slot, item) -> this.checkItem(inventory, slot, item));
