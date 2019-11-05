@@ -3,43 +3,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>dupepatcher</groupId>
-    <artifactId>DupePatcher</artifactId>
-    <version>1.0.3</version>
+    <groupId>gg.ign.nukkit.plugins</groupId>
+    <artifactId>dupepatcher</artifactId>
+    <version>1.0.4</version>
+    <name>DupePatcher</name>
+    <url>https://github.com/ign-gg/DupePatcher</url>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <repositories>
         <repository>
             <id>nukkitx</id>
-            <url>https://repo.nukkitx.com/main/</url>
+            <url>https://repo.nukkitx.com/maven-snapshots/</url>
         </repository>
     </repositories>
-
-    <build>
-        <defaultGoal>install</defaultGoal>
-        <sourceDirectory>${basedir}</sourceDirectory>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-        <resources>
-            <resource>
-                <targetPath>.</targetPath>
-                <filtering>false</filtering>
-                <directory>${basedir}</directory>
-                <includes>
-                    <include>plugin.yml</include>
-                </includes>
-            </resource>
-        </resources>
-    </build>
 
     <dependencies>
         <dependency>
@@ -49,7 +30,9 @@
             <optional>false</optional>
         </dependency>
     </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <finalName>${project.name}</finalName>
+    </build>
 </project>

@@ -1,4 +1,4 @@
-package dupepatcher;
+package gg.ign.nukkit.plugins.dupepatcher;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
