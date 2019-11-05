@@ -7,6 +7,7 @@ import cn.nukkit.entity.item.EntityPrimedTNT;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.entity.EntityArmorChangeEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntitySpawnEvent;
@@ -130,6 +131,8 @@ public class Main extends PluginBase implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent e) {
+        e.getPlayer().getInventory().getContents().forEach((slot, item) -> this.checkItem(e.getInventory(), slot, item));
+
         if (e.getInventory().getType() == InventoryType.ENCHANT_TABLE) {
             etOpen.remove(e.getPlayer());
         }
