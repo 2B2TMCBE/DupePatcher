@@ -46,22 +46,22 @@ public class Main extends PluginBase implements Listener {
         getServer().getScheduler().scheduleRepeatingTask(this, this::clearCounts, 100);
     }
 
-    @EventHandler
-    public void onInteract(PlayerInteractEvent e) {
-        if (e.getAction() == PlayerInteractEvent.Action.PHYSICAL) return;
-        if (e.getBlock().getId() == Block.ENCHANT_TABLE) {
-            boolean shulker = false;
-            for (Item i : e.getPlayer().getInventory().getContents().values()) {
-                if (i.getId() == Item.SHULKER_BOX || i.getId() == Item.UNDYED_SHULKER_BOX) {
-                    shulker = true;
-                }
-            }
-            if (shulker) {
-                e.getPlayer().sendMessage(TextFormat.RED + "Enchantment Table: Please remove all shulker boxes from your inventory before use");
-                e.setCancelled(true);
-            }
-        }
-    }
+//    @EventHandler
+//    public void onInteract(PlayerInteractEvent e) {
+//        if (e.getAction() == PlayerInteractEvent.Action.PHYSICAL) return;
+//        if (e.getBlock().getId() == Block.ENCHANT_TABLE) {
+//            boolean shulker = false;
+//            for (Item i : e.getPlayer().getInventory().getContents().values()) {
+//                if (i.getId() == Item.SHULKER_BOX || i.getId() == Item.UNDYED_SHULKER_BOX) {
+//                    shulker = true;
+//                }
+//            }
+//            if (shulker) {
+//                e.getPlayer().sendMessage(TextFormat.RED + "Enchantment Table: Please remove all shulker boxes from your inventory before use");
+//                e.setCancelled(true);
+//            }
+//        }
+//    }
 
     @EventHandler
     public void onItemHeld(PlayerItemHeldEvent e) {
