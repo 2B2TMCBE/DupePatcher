@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>gg.ign.nukkit.plugins</groupId>
     <artifactId>dupepatcher</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <name>DupePatcher</name>
     <url>https://github.com/ign-gg/DupePatcher</url>
 
