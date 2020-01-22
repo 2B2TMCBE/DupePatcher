@@ -109,6 +109,9 @@ public class Main extends PluginBase implements Listener {
         if (i.getCount() > i.getMaxStackSize()) {
             i.setCount(i.getMaxStackSize());
         }
+        if ((i.getId() == Item.SHULKER_BOX || i.getId() == Item.UNDYED_SHULKER_BOX) && isTooNestedShulker(i)) {
+            i.clearNamedTag();
+        }
     }
 
     @EventHandler
